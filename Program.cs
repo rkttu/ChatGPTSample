@@ -1,32 +1,37 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder();
+builder.Configuration
+    .AddEnvironmentVariables()
+    .AddUserSecrets<Program>();
+
 var app = builder.Build();
-
-const string apiUrl = "https://api.openai.com/v1/chat/completions";
-const string modelName = "gpt-4o-mini";
-var apiKey = await File.ReadAllTextAsync(
-    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "openai-key.txt"))
-    .ConfigureAwait(false);
-
-app.MapPost("/AskChatGPT", async ([FromBody] string query) =>
+app.MapPost("/AskChatGPT", async (
+    IConfiguration configuration,
+    [FromBody] string query) =>
 {
     try
     {
-        if (string.IsNullOrWhiteSpace(apiKey))
+        var apiUrl = configuration["API_URL"] ??
+            "https://api.openai.com/v1/chat/completions";
+        var modelName = configuration["MODEL_NAME"] ??
+            "gpt-4o-mini";
+
+        var openAiKey = configuration["OPENAI_KEY"];
+        if (string.IsNullOrWhiteSpace(openAiKey))
             throw new Exception("API key is not configured.");
 
         var sb = new StringBuilder();
 
         using var client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {openAiKey}");
 
         var request = new ChatRequest(modelName, new Message[] {
             new Message("system", "You are a helpful assistant."),

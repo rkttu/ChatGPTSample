@@ -8,5 +8,6 @@ To get started with this project, follow these steps:
 
 1. Obtain API key file from OpenAI platform web site.
 1. Clone this repository to your local machine.
-1. Create a text file named `openai_key.txt` in the use home directory. (For example, Windows - `%USERPROFILE`, Linux/macOS - `~/`)
+1. Run `dotnet user-secrets init` command on the project directory.
+1. Run `dotnet user-secrets set OPENAI_KEY "Issued API key"` command on the project directory.
 1. Run the sample with `dotnet run` command and open the web brwoser to `http://localhost:5000`.
